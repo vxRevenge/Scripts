@@ -1,0 +1,126 @@
+		local Client = game.Players.LocalPlayer
+		local function myParts()
+			local Char = Client.Character or Client.CharacterAdded:Wait()
+			if Char then
+				local HRP = Char:FindFirstChild("HumanoidRootPart")
+				local UPT = Char:FindFirstChild("UpperTorso")
+				local T = Char:FindFirstChild("Torso")
+				local LT = Char:FindFirstChild("LowerTorso")
+				local Head = Char:FindFirstChild("Head")
+				if HRP then
+					return HRP
+				elseif UPT then
+					return UPT
+				elseif T then
+					return T
+				elseif LT then
+					return LT
+				elseif Head then
+					return Head
+				end
+			end
+		end
+	
+		local LP = game.Players.LocalPlayer
+		local UIS = game:GetService("UserInputService")
+		local Mouse = LP:GetMouse()
+		local Toggle = false
+		local FLYING = false
+		local iyflyspeed = 5
+	
+		function sFLY()
+	
+			local T = myParts()
+			local CONTROL = {F = 0, B = 0, L = 0, R = 0}
+			local LCONTROL = {F = 0, B = 0, L = 0, R = 0}
+			local SPEED = 0
+	
+			local function FLY()
+				FLYING = true
+				local BG = Instance.new("BodyGyro", T)
+				local BV = Instance.new("BodyVelocity", T)
+				BG.P = 9e9;
+				BG.MaxTorque = Vector3.new(math.huge, math.huge, math.huge);
+				BG.CFrame = T.CFrame;
+				BV.Velocity = Vector3.new(0, 0, 0);
+				BV.MaxForce = Vector3.new(math.huge, math.huge, math.huge);
+				spawn(function()
+					repeat wait()
+						if CONTROL.L + CONTROL.R ~= 0 or CONTROL.F + CONTROL.B ~= 0 then
+							SPEED = 50
+						elseif not (CONTROL.L + CONTROL.R ~= 0 or CONTROL.F + CONTROL.B ~= 0) and SPEED ~= 0 then
+							SPEED = 0
+						end
+						if (CONTROL.L + CONTROL.R) ~= 0 or (CONTROL.F + CONTROL.B) ~= 0 then
+							BV.Velocity = ((workspace.CurrentCamera.CoordinateFrame.LookVector * (CONTROL.F + CONTROL.B)) + ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(CONTROL.L + CONTROL.R, (CONTROL.F + CONTROL.B) * 0.2, 0).p) - workspace.CurrentCamera.CoordinateFrame.p)) * SPEED
+							LCONTROL = {F = CONTROL.R, B = CONTROL.B, L = CONTROL.L, R = CONTROL.R}
+						elseif (CONTROL.L + CONTROL.R) == 0 and (CONTROL.F + CONTROL.B) == 0 and SPEED ~= 0 then
+							BV.Velocity = ((workspace.CurrentCamera.CoordinateFrame.LookVector * (LCONTROL.F + LCONTROL.B)) + ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(LCONTROL.L + LCONTROL.R, (LCONTROL.F + LCONTROL.B) * 0.2, 0).p) - workspace.CurrentCamera.CoordinateFrame.p)) * SPEED
+						else
+							BV.Velocity = Vector3.new(0, 0, 0)
+						end
+						BG.CFrame = workspace.CurrentCamera.CoordinateFrame
+					until not FLYING
+					CONTROL = {F = 0, B = 0, L = 0, R = 0}
+					LCONTROL = {F = 0, B = 0, L = 0, R = 0}
+					SPEED = 0
+					BG:Destroy()
+					BV:Destroy()
+				end)
+			end
+	
+			UIS.InputBegan:Connect(function(Input, Processed)
+				if Processed then return end
+				if Input.KeyCode == Enum.KeyCode.W then
+					CONTROL.F = iyflyspeed
+				elseif Input.KeyCode == Enum.KeyCode.S then
+					CONTROL.B = -iyflyspeed
+				elseif Input.KeyCode == Enum.KeyCode.A then
+					CONTROL.L = -iyflyspeed
+				elseif Input.KeyCode == Enum.KeyCode.D then
+					CONTROL.R = iyflyspeed
+				end
+			end)
+			UIS.InputEnded:Connect(function(Input, Processed)
+				if Processed then return end
+				if Input.KeyCode == Enum.KeyCode.W then
+					CONTROL.F = 0
+				elseif Input.KeyCode == Enum.KeyCode.S then
+					CONTROL.B = 0
+				elseif Input.KeyCode == Enum.KeyCode.A then
+					CONTROL.L = 0
+				elseif Input.KeyCode == Enum.KeyCode.D then
+					CONTROL.R = 0
+				end
+			end)
+			FLY()
+		end
+	
+		function NOFLY()
+			FLYING = false
+		end
+	
+		function beginfly()
+			for i,v in pairs(LP.PlayerGui:GetChildren()) do
+				if v:IsA("LocalScript") then
+					v.Disabled = true
+				end
+			end
+			sFLY()
+			for i,v in pairs(LP.PlayerGui:GetChildren()) do
+				if v:IsA("LocalScript") then
+					v.Disabled = false
+				end
+			end
+		end
+	
+		UIS.InputBegan:Connect(function(Key, gameProcessedEvent)
+			if Key.KeyCode == Enum.KeyCode.X and not gameProcessedEvent then
+				Toggle = not Toggle
+				if Toggle == true then
+					beginfly()
+				elseif Toggle == false then
+					NOFLY()
+				end
+			end
+		end)
