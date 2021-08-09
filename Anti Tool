@@ -1,0 +1,19 @@
+local CL = game.Players.LocalPlayer
+        local B, C = CL.Backpack, CL.Character
+        for i,v in pairs(B:GetChildren()) do
+            if v:IsA("Tool") then
+                local F = Instance.new("Folder", v.Handle)
+                F.Name = "1094795585"
+            end
+        end
+        C.ChildAdded:Connect(function(X)
+            if X:IsA("Tool") then
+                local FF = X.Handle:FindFirstChild("1094795585")
+
+                if not FF then
+                    X.Parent = nil
+                    X.Handle:Destroy()
+                    X:Destroy()
+                end
+            end
+        end)
